@@ -43,6 +43,7 @@ export const listStations = createServerFn({ method: "GET" }).handler(
 
     const byStation = new Map<string, { gasolina?: LatestStatus; gasoleo?: LatestStatus }>();
     for (const s of statusRes.data ?? []) {
+      if (!s.station_id || !s.fuel_type || !s.status || !s.reported_at) continue;
       const entry = byStation.get(s.station_id) ?? {};
       const payload: LatestStatus = {
         status: s.status as LatestStatus["status"],
