@@ -1,0 +1,17 @@
+{
+  "name": "Abastece.ao",
+  "short_name": "Abastece",
+  "description": "Combustível em tempo real em Angola.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#F97316",
+  "lang": "pt",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
