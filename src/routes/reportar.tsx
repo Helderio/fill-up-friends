@@ -85,6 +85,12 @@ function ReportarPage() {
               </option>
             ))}
           </select>
+          <Link
+            to="/postos/novo"
+            className="mt-2 inline-block text-xs font-semibold text-primary"
+          >
+            + Não vejo o meu posto
+          </Link>
         </Field>
 
         <Field label="Combustível">
