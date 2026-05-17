@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { ShieldCheck } from "lucide-react";
 import type { StationWithStatus, LatestStatus } from "@/lib/stations.functions";
 import { StatusBar, StatusLabel } from "./StatusBadge";
 import { formatKz, formatQueue, formatRelativePt } from "@/lib/format";
