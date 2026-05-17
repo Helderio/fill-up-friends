@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LogOut, User } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Building2, LogOut, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { listMySubmittedStations } from "@/lib/stations.functions";
+import { getDeviceId } from "@/lib/device-id";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({ meta: [{ title: "Perfil — Abastece.ao" }] }),
@@ -11,15 +14,24 @@ export const Route = createFileRoute("/perfil")({
 function PerfilPage() {
   const [email, setEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deviceId, setDeviceId] = useState<string | null>(null);
 
   useEffect(() => {
+    setDeviceId(getDeviceId());
     supabase.auth.getUser().then(({ data }) => {
       setEmail(data.user?.email ?? null);
       setLoading(false);
     });
   }, []);
 
-  if (loading) return <p className="p-8 text-center text-sm text-muted-foreground">A carregar…</p>;
+  const { data: submitted } = useQuery({
+    queryKey: ["my-submitted-stations", deviceId, email],
+    queryFn: () => listMySubmittedStations({ data: { deviceId: deviceId ?? "" } }),
+    enabled: !!deviceId,
+  });
+
+  if (loading)
+    return <p className="p-8 text-center text-sm text-muted-foreground">A carregar…</p>;
 
   if (!email) {
     return (
@@ -37,6 +49,10 @@ function PerfilPage() {
         >
           Entrar / Criar conta
         </Link>
+
+        {submitted && submitted.length > 0 && (
+          <SubmittedSection items={submitted} />
+        )}
       </div>
     );
   }
@@ -53,6 +69,27 @@ function PerfilPage() {
           </p>
           <p className="font-mono text-sm mt-1">{email}</p>
         </div>
+
+        <Link
+          to="/gestor/pedir"
+          className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 hover:border-primary/40"
+        >
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-full bg-primary/10 grid place-items-center">
+              <Building2 className="size-4 text-primary" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-bold">Sou responsável por um posto</p>
+              <p className="text-[11px] text-muted-foreground">
+                Atualiza stock como reporte oficial
+              </p>
+            </div>
+          </div>
+          <span className="text-muted-foreground">›</span>
+        </Link>
+
+        {submitted && submitted.length > 0 && <SubmittedSection items={submitted} />}
+
         <button
           onClick={async () => {
             await supabase.auth.signOut();
@@ -65,5 +102,51 @@ function PerfilPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+function SubmittedSection({
+  items,
+}: {
+  items: { id: string; name: string; status: string; confirmations_count: number }[];
+}) {
+  const label: Record<string, string> = {
+    pending: "Pendente",
+    approved: "Aprovado",
+    rejected: "Rejeitado",
+  };
+  const cls: Record<string, string> = {
+    pending: "bg-status-amber-soft text-status-amber",
+    approved: "bg-status-green-soft text-status-green",
+    rejected: "bg-status-red-soft text-status-red",
+  };
+  return (
+    <section>
+      <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+        Os meus postos submetidos
+      </h2>
+      <ul className="space-y-2">
+        {items.map((s) => (
+          <li
+            key={s.id}
+            className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-semibold truncate">{s.name}</p>
+              {s.status === "pending" && (
+                <p className="text-[10px] text-muted-foreground">
+                  Confirmações: {s.confirmations_count}/3
+                </p>
+              )}
+            </div>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cls[s.status] ?? ""}`}
+            >
+              {label[s.status] ?? s.status}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
