@@ -1,16 +1,45 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Map as MapIcon, List, Plus, Bell, User } from "lucide-react";
+import { Map as MapIcon, List, Plus, Bell, User, Building2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-
-const items = [
-  { to: "/", label: "Mapa", icon: MapIcon },
-  { to: "/lista", label: "Lista", icon: List },
-  { to: "/alertas", label: "Alertas", icon: Bell },
-  { to: "/perfil", label: "Perfil", icon: User },
-] as const;
+import { supabase } from "@/integrations/supabase/client";
+import { iAmManager } from "@/lib/stations.functions";
 
 export function BottomNav() {
   const { pathname } = useLocation();
+  const [hasSession, setHasSession] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) =>
+      setHasSession(!!s),
+    );
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const { data } = useQuery({
+    queryKey: ["i-am-manager", hasSession],
+    queryFn: () => iAmManager(),
+    enabled: hasSession,
+    staleTime: 5 * 60 * 1000,
+  });
+  const isManager = data?.isManager ?? false;
+
+  const left = [
+    { to: "/", label: "Mapa", icon: MapIcon },
+    { to: "/lista", label: "Lista", icon: List },
+  ] as const;
+
+  const right = isManager
+    ? ([
+        { to: "/gestor", label: "Gestor", icon: Building2 },
+        { to: "/perfil", label: "Perfil", icon: User },
+      ] as const)
+    : ([
+        { to: "/alertas", label: "Alertas", icon: Bell },
+        { to: "/perfil", label: "Perfil", icon: User },
+      ] as const);
 
   return (
     <nav
@@ -18,7 +47,7 @@ export function BottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="mx-auto flex max-w-[480px] items-center justify-around px-2 py-2 relative">
-        {items.slice(0, 2).map((it) => (
+        {left.map((it) => (
           <NavItem key={it.to} {...it} active={pathname === it.to} />
         ))}
 
@@ -30,7 +59,7 @@ export function BottomNav() {
           <Plus className="size-6" strokeWidth={2.5} />
         </Link>
 
-        {items.slice(2).map((it) => (
+        {right.map((it) => (
           <NavItem key={it.to} {...it} active={pathname === it.to} />
         ))}
       </div>
