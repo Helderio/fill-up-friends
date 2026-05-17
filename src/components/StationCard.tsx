@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { ShieldCheck } from "lucide-react";
 import type { StationWithStatus, LatestStatus } from "@/lib/stations.functions";
 import { StatusBar, StatusLabel } from "./StatusBadge";
 import { formatKz, formatQueue, formatRelativePt } from "@/lib/format";
@@ -36,7 +37,18 @@ export function StationCard({
       <div className="p-4 pt-5">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h4 className="font-bold text-foreground truncate">{station.name}</h4>
+            <div className="flex items-center gap-1.5">
+              <h4 className="font-bold text-foreground truncate">{station.name}</h4>
+              {best?.source === "official" && (
+                <span
+                  title="Reporte oficial do posto"
+                  className="inline-flex items-center gap-0.5 rounded-full bg-blue-600/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-600"
+                >
+                  <ShieldCheck className="size-2.5" />
+                  Oficial
+                </span>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground truncate">
               {station.address ?? station.province}
               {distanceKm != null && (

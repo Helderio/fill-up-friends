@@ -13,9 +13,12 @@ import { Route as ReportarRouteImport } from './routes/reportar'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ListaRouteImport } from './routes/lista'
+import { Route as GestorRouteImport } from './routes/gestor'
 import { Route as AlertasRouteImport } from './routes/alertas'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PostosNovoRouteImport } from './routes/postos.novo'
 import { Route as PostosStationIdRouteImport } from './routes/postos.$stationId'
+import { Route as GestorPedirRouteImport } from './routes/gestor.pedir'
 
 const ReportarRoute = ReportarRouteImport.update({
   id: '/reportar',
@@ -37,6 +40,11 @@ const ListaRoute = ListaRouteImport.update({
   path: '/lista',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GestorRoute = GestorRouteImport.update({
+  id: '/gestor',
+  path: '/gestor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AlertasRoute = AlertasRouteImport.update({
   id: '/alertas',
   path: '/alertas',
@@ -47,78 +55,108 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PostosNovoRoute = PostosNovoRouteImport.update({
+  id: '/postos/novo',
+  path: '/postos/novo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PostosStationIdRoute = PostosStationIdRouteImport.update({
   id: '/postos/$stationId',
   path: '/postos/$stationId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GestorPedirRoute = GestorPedirRouteImport.update({
+  id: '/pedir',
+  path: '/pedir',
+  getParentRoute: () => GestorRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/alertas': typeof AlertasRoute
+  '/gestor': typeof GestorRouteWithChildren
   '/lista': typeof ListaRoute
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
   '/reportar': typeof ReportarRoute
+  '/gestor/pedir': typeof GestorPedirRoute
   '/postos/$stationId': typeof PostosStationIdRoute
+  '/postos/novo': typeof PostosNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/alertas': typeof AlertasRoute
+  '/gestor': typeof GestorRouteWithChildren
   '/lista': typeof ListaRoute
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
   '/reportar': typeof ReportarRoute
+  '/gestor/pedir': typeof GestorPedirRoute
   '/postos/$stationId': typeof PostosStationIdRoute
+  '/postos/novo': typeof PostosNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/alertas': typeof AlertasRoute
+  '/gestor': typeof GestorRouteWithChildren
   '/lista': typeof ListaRoute
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
   '/reportar': typeof ReportarRoute
+  '/gestor/pedir': typeof GestorPedirRoute
   '/postos/$stationId': typeof PostosStationIdRoute
+  '/postos/novo': typeof PostosNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/alertas'
+    | '/gestor'
     | '/lista'
     | '/login'
     | '/perfil'
     | '/reportar'
+    | '/gestor/pedir'
     | '/postos/$stationId'
+    | '/postos/novo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/alertas'
+    | '/gestor'
     | '/lista'
     | '/login'
     | '/perfil'
     | '/reportar'
+    | '/gestor/pedir'
     | '/postos/$stationId'
+    | '/postos/novo'
   id:
     | '__root__'
     | '/'
     | '/alertas'
+    | '/gestor'
     | '/lista'
     | '/login'
     | '/perfil'
     | '/reportar'
+    | '/gestor/pedir'
     | '/postos/$stationId'
+    | '/postos/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlertasRoute: typeof AlertasRoute
+  GestorRoute: typeof GestorRouteWithChildren
   ListaRoute: typeof ListaRoute
   LoginRoute: typeof LoginRoute
   PerfilRoute: typeof PerfilRoute
   ReportarRoute: typeof ReportarRoute
   PostosStationIdRoute: typeof PostosStationIdRoute
+  PostosNovoRoute: typeof PostosNovoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -151,6 +189,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gestor': {
+      id: '/gestor'
+      path: '/gestor'
+      fullPath: '/gestor'
+      preLoaderRoute: typeof GestorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/alertas': {
       id: '/alertas'
       path: '/alertas'
@@ -165,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/postos/novo': {
+      id: '/postos/novo'
+      path: '/postos/novo'
+      fullPath: '/postos/novo'
+      preLoaderRoute: typeof PostosNovoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/postos/$stationId': {
       id: '/postos/$stationId'
       path: '/postos/$stationId'
@@ -172,28 +224,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PostosStationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gestor/pedir': {
+      id: '/gestor/pedir'
+      path: '/pedir'
+      fullPath: '/gestor/pedir'
+      preLoaderRoute: typeof GestorPedirRouteImport
+      parentRoute: typeof GestorRoute
+    }
   }
 }
+
+interface GestorRouteChildren {
+  GestorPedirRoute: typeof GestorPedirRoute
+}
+
+const GestorRouteChildren: GestorRouteChildren = {
+  GestorPedirRoute: GestorPedirRoute,
+}
+
+const GestorRouteWithChildren =
+  GestorRoute._addFileChildren(GestorRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlertasRoute: AlertasRoute,
+  GestorRoute: GestorRouteWithChildren,
   ListaRoute: ListaRoute,
   LoginRoute: LoginRoute,
   PerfilRoute: PerfilRoute,
   ReportarRoute: ReportarRoute,
   PostosStationIdRoute: PostosStationIdRoute,
+  PostosNovoRoute: PostosNovoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
