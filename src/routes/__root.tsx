@@ -11,6 +11,7 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 
 import appCss from "../styles.css?url";
 
@@ -131,6 +132,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthListener />
       <div className="mx-auto w-full max-w-[480px] min-h-dvh bg-background pb-20">
+        <EmailVerificationBanner />
         <Outlet />
       </div>
       <BottomNav />
