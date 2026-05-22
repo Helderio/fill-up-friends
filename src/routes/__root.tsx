@@ -11,6 +11,7 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 
 import appCss from "../styles.css?url";
 
