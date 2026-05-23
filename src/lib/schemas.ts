@@ -70,3 +70,26 @@ export const DEFAULT_FUEL_PRICES: Record<(typeof FUEL_TYPES)[number], number> = 
   gasolina: 300,
   gasoleo: 400,
 };
+
+export const BRANDS = ["Sonangol", "Pumangol", "TotalEnergies"] as const;
+
+export const PROVINCES = [
+  "Bengo", "Benguela", "Bié", "Cabinda", "Cuando Cubango",
+  "Cuanza Norte", "Cuanza Sul", "Cunene", "Huambo", "Huíla",
+  "Luanda", "Lunda Norte", "Lunda Sul", "Malanje", "Moxico",
+  "Namibe", "Uíge", "Zaire",
+] as const;
+
+export type BrandFilter = (typeof BRANDS)[number] | "independente";
+
+export function brandLabel(b: string | null): string {
+  if (!b) return "Independente";
+  if ((BRANDS as readonly string[]).includes(b)) return b;
+  return b;
+}
+
+export function isBrandMatch(stationBrand: string | null, filter: string): boolean {
+  if (filter === "all") return true;
+  if (filter === "independente") return !stationBrand || !(BRANDS as readonly string[]).includes(stationBrand);
+  return stationBrand === filter;
+}

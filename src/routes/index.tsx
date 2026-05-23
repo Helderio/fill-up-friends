@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useMemo, useState } from "react";
-import { Fuel, MapPin } from "lucide-react";
+import { Fuel, MapPin, SlidersHorizontal } from "lucide-react";
 import { listStations } from "@/lib/stations.functions";
 import { StationCard } from "@/components/StationCard";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { distanceKm } from "@/lib/format";
-import { fuelLabel, FUEL_TYPES } from "@/lib/schemas";
+import { fuelLabel, FUEL_TYPES, isBrandMatch } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 
 const MapView = lazy(() =>
@@ -29,6 +29,9 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   const { position } = useGeolocation();
   const [fuel, setFuel] = useState<"gasolina" | "gasoleo">("gasolina");
+  const [province, setProvince] = useState<string>("all");
+  const [brand, setBrand] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
 
   const { data: stations } = useQuery({
     queryKey: ["stations"],
@@ -36,14 +39,29 @@ function HomePage() {
     refetchInterval: 60_000,
   });
 
-  const sorted = useMemo(() => {
+  const availableProvinces = useMemo(() => {
     if (!stations) return [];
+    const set = new Set(stations.map((s) => s.province));
+    return Array.from(set).sort();
+  }, [stations]);
+
+  const stationsFiltered = useMemo(() => {
+    if (!stations) return [];
+    return stations.filter((s) => {
+      if (province !== "all" && s.province !== province) return false;
+      if (brand !== "all" && !isBrandMatch(s.brand, brand)) return false;
+      return true;
+    });
+  }, [stations, province, brand]);
+
+  const sorted = useMemo(() => {
+    if (!stationsFiltered.length) return [];
     const origin = position ?? [-8.838, 13.234];
-    return [...stations]
+    return [...stationsFiltered]
       .map((s) => ({ s, d: distanceKm(origin[0], origin[1], s.lat, s.lng) }))
       .sort((a, b) => a.d - b.d)
       .slice(0, 8);
-  }, [stations, position]);
+  }, [stationsFiltered, position]);
 
   return (
     <div className="flex flex-col">
@@ -58,16 +76,28 @@ function HomePage() {
                 Abastece.ao
               </h1>
               <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-                Luanda · ao vivo
+                Mapa ao vivo
               </p>
             </div>
           </Link>
-          <Link
-            to="/login"
-            className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted"
-          >
-            Entrar
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowFilters((v) => !v)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition",
+                showFilters ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:bg-muted/70"
+              )}
+            >
+              <SlidersHorizontal className="size-3.5" />
+              Filtros
+            </button>
+            <Link
+              to="/login"
+              className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted"
+            >
+              Entrar
+            </Link>
+          </div>
         </div>
 
         <div className="flex gap-1.5 px-4 pb-3">
@@ -87,6 +117,36 @@ function HomePage() {
             </button>
           ))}
         </div>
+
+        {showFilters && (
+          <div className="flex flex-wrap gap-1.5 px-4 pb-3 border-t border-border pt-2">
+            <select
+              value={province}
+              onChange={(e) => setProvince(e.target.value)}
+              className="rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="all">Todas as províncias</option>
+              {availableProvinces.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+
+            {["all", "Sonangol", "Pumangol", "TotalEnergies", "independente"].map((b) => (
+              <button
+                key={b}
+                onClick={() => setBrand(b)}
+                className={cn(
+                  "rounded-full px-3 py-1.5 text-xs font-semibold",
+                  brand === b
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground",
+                )}
+              >
+                {b === "all" ? "Todos operadores" : b === "independente" ? "Independente" : b}
+              </button>
+            ))}
+          </div>
+        )}
       </header>
 
       <section className="relative h-[55vh] min-h-[320px]">
@@ -97,7 +157,7 @@ function HomePage() {
             </div>
           }
         >
-          <MapView stations={stations ?? []} userPosition={position} />
+          <MapView stations={stationsFiltered} userPosition={position} />
         </Suspense>
       </section>
 
