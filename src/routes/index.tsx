@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useMemo, useState } from "react";
-import { Fuel, MapPin } from "lucide-react";
+import { Fuel, MapPin, SlidersHorizontal } from "lucide-react";
 import { listStations } from "@/lib/stations.functions";
 import { StationCard } from "@/components/StationCard";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { distanceKm } from "@/lib/format";
-import { fuelLabel, FUEL_TYPES } from "@/lib/schemas";
+import { fuelLabel, FUEL_TYPES, isBrandMatch } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 
 const MapView = lazy(() =>
