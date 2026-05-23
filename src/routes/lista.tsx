@@ -5,8 +5,9 @@ import { listStations } from "@/lib/stations.functions";
 import { StationCard } from "@/components/StationCard";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { distanceKm } from "@/lib/format";
-import { FUEL_TYPES, fuelLabel } from "@/lib/schemas";
+import { FUEL_TYPES, fuelLabel, PROVINCES, isBrandMatch } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
+import { SlidersHorizontal } from "lucide-react";
 
 export const Route = createFileRoute("/lista")({
   head: () => ({
