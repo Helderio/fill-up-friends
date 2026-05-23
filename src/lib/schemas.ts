@@ -65,3 +65,8 @@ export const fuelLabel: Record<(typeof FUEL_TYPES)[number], string> = {
   gasolina: "Gasolina",
   gasoleo: "Gasóleo",
 };
+
+export const DEFAULT_FUEL_PRICES: Record<(typeof FUEL_TYPES)[number], number> = {
+  gasolina: 300,
+  gasoleo: 400,
+};
