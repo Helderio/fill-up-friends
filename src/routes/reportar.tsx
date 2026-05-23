@@ -128,13 +128,13 @@ function ReportarPage() {
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Preço (Kz/L)">
+          <Field label={`Preço (Kz/L) · ref. ${DEFAULT_FUEL_PRICES[fuel]}`}>
             <input
               type="number"
               inputMode="numeric"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              placeholder="160"
+              placeholder={String(DEFAULT_FUEL_PRICES[fuel])}
               className="w-full rounded-xl border border-border bg-card px-3 py-3 text-sm font-mono"
             />
           </Field>

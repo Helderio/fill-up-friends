@@ -224,7 +224,7 @@ function ManagedStationCard({ row }: { row: ManagedRow }) {
             inputMode="numeric"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            placeholder="Preço (Kz/L)"
+            placeholder={`Preço ref. ${DEFAULT_FUEL_PRICES[fuel]} Kz/L`}
             className="rounded-xl border border-border bg-card px-3 py-2.5 text-sm font-mono"
           />
           <input
