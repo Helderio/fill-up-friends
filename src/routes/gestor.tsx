@@ -9,7 +9,7 @@ import {
   listMyManagedStations,
   submitOfficialReport,
 } from "@/lib/stations.functions";
-import { FUEL_TYPES, STATUSES, fuelLabel, statusLabel } from "@/lib/schemas";
+import { FUEL_TYPES, STATUSES, fuelLabel, statusLabel, DEFAULT_FUEL_PRICES } from "@/lib/schemas";
 import { formatKz, formatQueue, formatRelativePt } from "@/lib/format";
 import { cn } from "@/lib/utils";
 

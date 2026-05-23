@@ -6,7 +6,7 @@ import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { listStations, submitReport } from "@/lib/stations.functions";
-import { FUEL_TYPES, STATUSES, fuelLabel, statusLabel } from "@/lib/schemas";
+import { FUEL_TYPES, STATUSES, fuelLabel, statusLabel, DEFAULT_FUEL_PRICES } from "@/lib/schemas";
 import { getDeviceId } from "@/lib/device-id";
 import { cn } from "@/lib/utils";
 
