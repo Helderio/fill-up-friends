@@ -164,7 +164,7 @@ export const submitReport = createServerFn({ method: "POST" })
       device_id: userId ? null : data.deviceId,
       source: "community",
     });
-    if (insertRes.error) throw new Error(insertRes.error.message);
+    if (insertRes.error) { console.error("[DB]", insertRes.error.message); throw new Error("Não foi possível completar a operação. Tenta novamente."); }
 
     // Auto-confirm pending station when 3 distinct devices/users report
     const { data: station } = await supabaseAdmin
@@ -218,7 +218,7 @@ export const submitStation = createServerFn({ method: "POST" })
       .select("id")
       .single();
 
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[DB]", error.message); throw new Error("Não foi possível completar a operação. Tenta novamente."); }
     return { id: created.id };
   });
 
@@ -237,7 +237,7 @@ export const listMySubmittedStations = createServerFn({ method: "POST" })
       query = query.eq("submitted_by_device_id", data.deviceId);
     }
     const { data: rows, error } = await query;
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[DB]", error.message); throw new Error("Não foi possível completar a operação. Tenta novamente."); }
     return rows ?? [];
   });
 
@@ -258,7 +258,7 @@ export const toggleProximityAlert = createServerFn({ method: "POST" })
           },
           { onConflict: "user_id,station_id,fuel_type" },
         );
-      if (error) throw new Error(error.message);
+      if (error) { console.error("[DB]", error.message); throw new Error("Não foi possível completar a operação. Tenta novamente."); }
     } else {
       const { error } = await supabase
         .from("proximity_alerts")
@@ -266,7 +266,7 @@ export const toggleProximityAlert = createServerFn({ method: "POST" })
         .eq("user_id", userId)
         .eq("station_id", data.stationId)
         .eq("fuel_type", data.fuelType);
-      if (error) throw new Error(error.message);
+      if (error) { console.error("[DB]", error.message); throw new Error("Não foi possível completar a operação. Tenta novamente."); }
     }
     return { ok: true };
   });
@@ -280,7 +280,7 @@ export const listMyAlerts = createServerFn({ method: "GET" })
       .select("id,station_id,fuel_type,active,created_at,stations(name,address)")
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[DB]", error.message); throw new Error("Não foi possível completar a operação. Tenta novamente."); }
     return data ?? [];
   });
 
@@ -294,7 +294,7 @@ export const listMyManagedStations = createServerFn({ method: "GET" })
       .from("station_managers")
       .select("role,station_id,stations(id,name,address,province,brand,lat,lng)")
       .eq("user_id", userId);
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[DB]", error.message); throw new Error("Não foi possível completar a operação. Tenta novamente."); }
 
     const stationIds = (mgrs ?? []).map((m) => m.station_id);
     if (stationIds.length === 0) return [];
@@ -361,7 +361,7 @@ export const submitOfficialReport = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .eq("station_id", data.stationId)
       .maybeSingle();
-    if (mgrErr) throw new Error(mgrErr.message);
+    if (mgrErr) { console.error("[DB]", mgrErr.message); throw new Error("Não foi possível completar a operação. Tenta novamente."); }
     if (!mgr) throw new Error("Não tens permissão para reportar como oficial neste posto.");
 
     const { error } = await supabaseAdmin.from("reports").insert({
@@ -375,7 +375,7 @@ export const submitOfficialReport = createServerFn({ method: "POST" })
       device_id: null,
       source: "official",
     });
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[DB]", error.message); throw new Error("Não foi possível completar a operação. Tenta novamente."); }
     return { ok: true };
   });
 
@@ -393,7 +393,7 @@ export const requestManagerAccess = createServerFn({ method: "POST" })
       proof: data.proof ?? null,
       status: "pending",
     });
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[DB]", error.message); throw new Error("Não foi possível completar a operação. Tenta novamente."); }
     return { ok: true };
   });
 
@@ -407,6 +407,6 @@ export const listMyManagerRequests = createServerFn({ method: "GET" })
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(10);
-    if (error) throw new Error(error.message);
+    if (error) { console.error("[DB]", error.message); throw new Error("Não foi possível completar a operação. Tenta novamente."); }
     return data ?? [];
   });
