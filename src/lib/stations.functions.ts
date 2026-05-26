@@ -106,10 +106,13 @@ export const getStationDetail = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const stationRes = await supabaseAdmin
       .from("stations")
-      .select("*")
+      .select("id,name,brand,address,province,lat,lng,status,confirmations_count,created_at")
       .eq("id", data.stationId)
       .maybeSingle();
-    if (stationRes.error) throw new Error(stationRes.error.message);
+    if (stationRes.error) {
+      console.error("[DB] getStationDetail station:", stationRes.error.message);
+      throw new Error("Não foi possível carregar o posto. Tenta novamente.");
+    }
     if (!stationRes.data) throw new Error("Posto não encontrado");
 
     const reportsRes = await supabaseAdmin
@@ -118,7 +121,10 @@ export const getStationDetail = createServerFn({ method: "POST" })
       .eq("station_id", data.stationId)
       .order("created_at", { ascending: false })
       .limit(30);
-    if (reportsRes.error) throw new Error(reportsRes.error.message);
+    if (reportsRes.error) {
+      console.error("[DB] getStationDetail reports:", reportsRes.error.message);
+      throw new Error("Não foi possível carregar o histórico. Tenta novamente.");
+    }
 
     return {
       station: stationRes.data,
