@@ -59,8 +59,14 @@ export const listStations = createServerFn({ method: "GET" }).handler(
         .select("station_id,fuel_type,status,price_kz,queue_minutes,reported_at,source"),
     ]);
 
-    if (stationsRes.error) console.error("[DB] listStations stations:", stationsRes.error.message); throw new Error("Não foi possível carregar os postos. Tenta novamente.");
-    if (statusRes.error) console.error("[DB] listStations status:", statusRes.error.message); throw new Error("Não foi possível carregar os postos. Tenta novamente.");
+    if (stationsRes.error) {
+      console.error("[DB] listStations stations:", stationsRes.error.message);
+      throw new Error("Não foi possível carregar os postos. Tenta novamente.");
+    }
+    if (statusRes.error) {
+      console.error("[DB] listStations status:", statusRes.error.message);
+      throw new Error("Não foi possível carregar os postos. Tenta novamente.");
+    }
 
     const byStation = new Map<string, { gasolina?: LatestStatus; gasoleo?: LatestStatus }>();
     for (const s of statusRes.data ?? []) {
