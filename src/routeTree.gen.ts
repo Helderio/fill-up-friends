@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PostosNovoRouteImport } from './routes/postos.novo'
 import { Route as PostosStationIdRouteImport } from './routes/postos.$stationId'
 import { Route as GestorPedirRouteImport } from './routes/gestor.pedir'
+import { Route as AdminErrosRouteImport } from './routes/admin.erros'
 
 const ReportarRoute = ReportarRouteImport.update({
   id: '/reportar',
@@ -70,6 +71,11 @@ const GestorPedirRoute = GestorPedirRouteImport.update({
   path: '/pedir',
   getParentRoute: () => GestorRoute,
 } as any)
+const AdminErrosRoute = AdminErrosRouteImport.update({
+  id: '/admin/erros',
+  path: '/admin/erros',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
   '/reportar': typeof ReportarRoute
+  '/admin/erros': typeof AdminErrosRoute
   '/gestor/pedir': typeof GestorPedirRoute
   '/postos/$stationId': typeof PostosStationIdRoute
   '/postos/novo': typeof PostosNovoRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
   '/reportar': typeof ReportarRoute
+  '/admin/erros': typeof AdminErrosRoute
   '/gestor/pedir': typeof GestorPedirRoute
   '/postos/$stationId': typeof PostosStationIdRoute
   '/postos/novo': typeof PostosNovoRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
   '/reportar': typeof ReportarRoute
+  '/admin/erros': typeof AdminErrosRoute
   '/gestor/pedir': typeof GestorPedirRoute
   '/postos/$stationId': typeof PostosStationIdRoute
   '/postos/novo': typeof PostosNovoRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/perfil'
     | '/reportar'
+    | '/admin/erros'
     | '/gestor/pedir'
     | '/postos/$stationId'
     | '/postos/novo'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/perfil'
     | '/reportar'
+    | '/admin/erros'
     | '/gestor/pedir'
     | '/postos/$stationId'
     | '/postos/novo'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/perfil'
     | '/reportar'
+    | '/admin/erros'
     | '/gestor/pedir'
     | '/postos/$stationId'
     | '/postos/novo'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PerfilRoute: typeof PerfilRoute
   ReportarRoute: typeof ReportarRoute
+  AdminErrosRoute: typeof AdminErrosRoute
   PostosStationIdRoute: typeof PostosStationIdRoute
   PostosNovoRoute: typeof PostosNovoRoute
 }
@@ -231,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GestorPedirRouteImport
       parentRoute: typeof GestorRoute
     }
+    '/admin/erros': {
+      id: '/admin/erros'
+      path: '/admin/erros'
+      fullPath: '/admin/erros'
+      preLoaderRoute: typeof AdminErrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -253,19 +273,10 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PerfilRoute: PerfilRoute,
   ReportarRoute: ReportarRoute,
+  AdminErrosRoute: AdminErrosRoute,
   PostosStationIdRoute: PostosStationIdRoute,
   PostosNovoRoute: PostosNovoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

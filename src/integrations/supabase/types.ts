@@ -120,6 +120,39 @@ export type Database = {
           },
         ]
       }
+      server_error_logs: {
+        Row: {
+          context: Json | null
+          created_at: string
+          device_id_hash: string | null
+          error_code: string | null
+          error_message: string
+          function_name: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          device_id_hash?: string | null
+          error_code?: string | null
+          error_message: string
+          function_name: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          device_id_hash?: string | null
+          error_code?: string | null
+          error_message?: string
+          function_name?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       station_manager_requests: {
         Row: {
           created_at: string
