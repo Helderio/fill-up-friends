@@ -178,6 +178,13 @@ export const submitReport = createServerFn({ method: "POST" })
       (t) => now - t < RATE_WINDOW_MS,
     );
     if (stamps.length >= RATE_MAX) {
+      await logServerError({
+        functionName: "submitReport",
+        error: "rate_limit_exceeded",
+        errorCode: "RATE_LIMIT",
+        deviceId: data.deviceId,
+        context: { stationId: data.stationId },
+      });
       throw new Error("Limite de reportes atingido. Tenta novamente mais tarde.");
     }
     stamps.push(now);
@@ -196,7 +203,18 @@ export const submitReport = createServerFn({ method: "POST" })
       device_id: userId ? null : data.deviceId,
       source: "community",
     });
-    if (insertRes.error) { console.error("[DB]", insertRes.error.message); throw new Error("Não foi possível completar a operação. Tenta novamente."); }
+    if (insertRes.error) {
+      console.error("[DB]", insertRes.error.message);
+      await logServerError({
+        functionName: "submitReport",
+        error: insertRes.error.message,
+        errorCode: insertRes.error.code,
+        userId,
+        deviceId: data.deviceId,
+        context: { stationId: data.stationId },
+      });
+      throw new Error("Não foi possível completar a operação. Tenta novamente.");
+    }
 
     // Auto-confirm pending station when 3 distinct devices/users report
     const { data: station } = await supabaseAdmin
