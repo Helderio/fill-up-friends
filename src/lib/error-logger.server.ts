@@ -32,7 +32,7 @@ export async function logServerError(params: {
       error_code: params.errorCode ?? null,
       user_id: params.userId ?? null,
       device_id_hash: params.deviceId ? hash(params.deviceId) : null,
-      context: params.context ?? null,
+      context: (params.context as never) ?? null,
     });
   } catch (e) {
     // Never throw from the logger itself.
