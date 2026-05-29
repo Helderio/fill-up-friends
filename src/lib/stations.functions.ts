@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { logServerError } from "./error-logger.server";
 import {
   alertInputSchema,
   managerRequestSchema,
@@ -61,10 +62,22 @@ export const listStations = createServerFn({ method: "GET" }).handler(
 
     if (stationsRes.error) {
       console.error("[DB] listStations stations:", stationsRes.error.message);
+      await logServerError({
+        functionName: "listStations",
+        error: stationsRes.error.message,
+        errorCode: stationsRes.error.code,
+        context: { step: "stations" },
+      });
       throw new Error("Não foi possível carregar os postos. Tenta novamente.");
     }
     if (statusRes.error) {
       console.error("[DB] listStations status:", statusRes.error.message);
+      await logServerError({
+        functionName: "listStations",
+        error: statusRes.error.message,
+        errorCode: statusRes.error.code,
+        context: { step: "status" },
+      });
       throw new Error("Não foi possível carregar os postos. Tenta novamente.");
     }
 
@@ -111,9 +124,22 @@ export const getStationDetail = createServerFn({ method: "POST" })
       .maybeSingle();
     if (stationRes.error) {
       console.error("[DB] getStationDetail station:", stationRes.error.message);
+      await logServerError({
+        functionName: "getStationDetail",
+        error: stationRes.error.message,
+        errorCode: stationRes.error.code,
+        context: { stationId: data.stationId, step: "station" },
+      });
       throw new Error("Não foi possível carregar o posto. Tenta novamente.");
     }
-    if (!stationRes.data) throw new Error("Posto não encontrado");
+    if (!stationRes.data) {
+      await logServerError({
+        functionName: "getStationDetail",
+        error: "station_not_found",
+        context: { stationId: data.stationId },
+      });
+      throw new Error("Posto não encontrado");
+    }
 
     const reportsRes = await supabaseAdmin
       .from("reports")
@@ -123,6 +149,12 @@ export const getStationDetail = createServerFn({ method: "POST" })
       .limit(30);
     if (reportsRes.error) {
       console.error("[DB] getStationDetail reports:", reportsRes.error.message);
+      await logServerError({
+        functionName: "getStationDetail",
+        error: reportsRes.error.message,
+        errorCode: reportsRes.error.code,
+        context: { stationId: data.stationId, step: "reports" },
+      });
       throw new Error("Não foi possível carregar o histórico. Tenta novamente.");
     }
 
