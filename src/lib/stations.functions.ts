@@ -191,8 +191,9 @@ export const getStationDetail = createServerFn({ method: "POST" })
       throw new Error("Não foi possível carregar o histórico. Tenta novamente.");
     }
 
+    const { submitted_by_user_id: _hidden, ...stationPublic } = st;
     return {
-      station: stationRes.data,
+      station: stationPublic,
       reports: reportsRes.data ?? [],
     };
   });
