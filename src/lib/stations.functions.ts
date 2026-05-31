@@ -120,9 +120,23 @@ export const listStations = createServerFn({ method: "GET" }).handler(
 export const getStationDetail = createServerFn({ method: "POST" })
   .inputValidator((input) => stationIdSchema.parse(input))
   .handler(async ({ data }) => {
+    const callerUserId = await getUserIdFromRequest();
+    let isAdmin = false;
+    if (callerUserId) {
+      const { data: roleRow } = await supabaseAdmin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", callerUserId)
+        .eq("role", "admin")
+        .maybeSingle();
+      isAdmin = !!roleRow;
+    }
+
     const stationRes = await supabaseAdmin
       .from("stations")
-      .select("id,name,brand,address,province,lat,lng,status,confirmations_count,created_at")
+      .select(
+        "id,name,brand,address,province,lat,lng,status,confirmations_count,created_at,submitted_by_user_id",
+      )
       .eq("id", data.stationId)
       .maybeSingle();
     if (stationRes.error) {
@@ -140,6 +154,22 @@ export const getStationDetail = createServerFn({ method: "POST" })
         functionName: "getStationDetail",
         error: "station_not_found",
         context: { stationId: data.stationId },
+      });
+      throw new Error("Posto não encontrado");
+    }
+
+    const st = stationRes.data;
+    const canView =
+      st.status === "approved" ||
+      isAdmin ||
+      (!!callerUserId && st.submitted_by_user_id === callerUserId);
+    if (!canView) {
+      await logServerError({
+        functionName: "getStationDetail",
+        error: "forbidden_non_approved_station",
+        errorCode: "FORBIDDEN",
+        userId: callerUserId,
+        context: { stationId: data.stationId, status: st.status },
       });
       throw new Error("Posto não encontrado");
     }
