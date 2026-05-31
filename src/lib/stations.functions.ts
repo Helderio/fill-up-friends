@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { logServerError } from "./error-logger.server";
@@ -10,6 +11,8 @@ import {
   stationIdSchema,
   submitStationSchema,
 } from "./schemas";
+
+const listSubmittedSchema = z.object({ deviceId: z.string().min(6).max(80) });
 
 export type LatestStatus = {
   status: "disponivel" | "pouco" | "sem_stock";
