@@ -71,9 +71,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Vê e partilha em tempo real onde há gasolina e gasóleo em Angola. Mapa, preços e filas reportados por motoristas.",
       },
-      { property: "og:title", content: "Abastece.ao" },
-      { property: "og:description", content: "Combustível em tempo real em Angola." },
+      { property: "og:title", content: "Abastece.ao — Combustível em tempo real" },
+      { property: "og:description", content: "Fuel Finder is a mobile app for drivers to share and find fuel station information." },
       { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Abastece.ao — Combustível em tempo real" },
+      { name: "description", content: "Fuel Finder is a mobile app for drivers to share and find fuel station information." },
+      { name: "twitter:description", content: "Fuel Finder is a mobile app for drivers to share and find fuel station information." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a9cc0c62-699c-44fd-9e0a-d885f2bf323f/id-preview-f5619855--78be4fda-594d-4ccd-85c8-3c1cd71406a4.lovable.app-1780262452210.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a9cc0c62-699c-44fd-9e0a-d885f2bf323f/id-preview-f5619855--78be4fda-594d-4ccd-85c8-3c1cd71406a4.lovable.app-1780262452210.png" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
