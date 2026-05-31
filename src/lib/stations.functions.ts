@@ -276,7 +276,7 @@ export const submitStation = createServerFn({ method: "POST" })
   });
 
 export const listMySubmittedStations = createServerFn({ method: "POST" })
-  .inputValidator((input: { deviceId: string }) => input)
+  .inputValidator((input) => listSubmittedSchema.parse(input))
   .handler(async ({ data }) => {
     const userId = await getUserIdFromRequest();
     let query = supabaseAdmin
