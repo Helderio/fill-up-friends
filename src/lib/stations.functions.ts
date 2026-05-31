@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { logServerError } from "./error-logger.server";
@@ -10,6 +11,8 @@ import {
   stationIdSchema,
   submitStationSchema,
 } from "./schemas";
+
+const listSubmittedSchema = z.object({ deviceId: z.string().min(6).max(80) });
 
 export type LatestStatus = {
   status: "disponivel" | "pouco" | "sem_stock";
@@ -117,9 +120,23 @@ export const listStations = createServerFn({ method: "GET" }).handler(
 export const getStationDetail = createServerFn({ method: "POST" })
   .inputValidator((input) => stationIdSchema.parse(input))
   .handler(async ({ data }) => {
+    const callerUserId = await getUserIdFromRequest();
+    let isAdmin = false;
+    if (callerUserId) {
+      const { data: roleRow } = await supabaseAdmin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", callerUserId)
+        .eq("role", "admin")
+        .maybeSingle();
+      isAdmin = !!roleRow;
+    }
+
     const stationRes = await supabaseAdmin
       .from("stations")
-      .select("id,name,brand,address,province,lat,lng,status,confirmations_count,created_at")
+      .select(
+        "id,name,brand,address,province,lat,lng,status,confirmations_count,created_at,submitted_by_user_id",
+      )
       .eq("id", data.stationId)
       .maybeSingle();
     if (stationRes.error) {
@@ -141,6 +158,22 @@ export const getStationDetail = createServerFn({ method: "POST" })
       throw new Error("Posto não encontrado");
     }
 
+    const st = stationRes.data;
+    const canView =
+      st.status === "approved" ||
+      isAdmin ||
+      (!!callerUserId && st.submitted_by_user_id === callerUserId);
+    if (!canView) {
+      await logServerError({
+        functionName: "getStationDetail",
+        error: "forbidden_non_approved_station",
+        errorCode: "FORBIDDEN",
+        userId: callerUserId,
+        context: { stationId: data.stationId, status: st.status },
+      });
+      throw new Error("Posto não encontrado");
+    }
+
     const reportsRes = await supabaseAdmin
       .from("reports")
       .select("id,fuel_type,status,price_kz,queue_minutes,note,created_at,user_id,source")
@@ -158,8 +191,9 @@ export const getStationDetail = createServerFn({ method: "POST" })
       throw new Error("Não foi possível carregar o histórico. Tenta novamente.");
     }
 
+    const { submitted_by_user_id: _hidden, ...stationPublic } = st;
     return {
-      station: stationRes.data,
+      station: stationPublic,
       reports: reportsRes.data ?? [],
     };
   });
@@ -273,7 +307,7 @@ export const submitStation = createServerFn({ method: "POST" })
   });
 
 export const listMySubmittedStations = createServerFn({ method: "POST" })
-  .inputValidator((input: { deviceId: string }) => input)
+  .inputValidator((input) => listSubmittedSchema.parse(input))
   .handler(async ({ data }) => {
     const userId = await getUserIdFromRequest();
     let query = supabaseAdmin
