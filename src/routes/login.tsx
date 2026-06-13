@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { authApi } from "@/lib/api";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Entrar — Abastece.ao" }] }),
@@ -21,17 +21,11 @@ function LoginPage() {
     setBusy(true);
     try {
       if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        await authApi.login(email, password);
         toast.success("Sessão iniciada");
       } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: `${window.location.origin}/` },
-        });
-        if (error) throw error;
-        toast.success("Conta criada. Verifica o teu email.");
+        await authApi.register(email, password);
+        toast.success("Conta criada");
       }
       navigate({ to: "/" });
     } catch (err) {

@@ -3,7 +3,7 @@ import { Map as MapIcon, List, Plus, Bell, User, Building2 } from "lucide-react"
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { getStoredUser, onAuthChange } from "@/lib/auth";
 import { iAmManager } from "@/lib/stations.functions";
 
 export function BottomNav() {
@@ -11,11 +11,9 @@ export function BottomNav() {
   const [hasSession, setHasSession] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) =>
-      setHasSession(!!s),
-    );
-    return () => sub.subscription.unsubscribe();
+    const sync = () => setHasSession(!!getStoredUser());
+    sync();
+    return onAuthChange(sync);
   }, []);
 
   const { data } = useQuery({

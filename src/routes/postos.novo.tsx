@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { submitStation } from "@/lib/stations.functions";
@@ -40,7 +39,6 @@ export const Route = createFileRoute("/postos/novo")({
 
 function NovoPostoPage() {
   const navigate = useNavigate();
-  const submit = useServerFn(submitStation);
 
   const [name, setName] = useState("");
   const [brand, setBrand] = useState<string>("");
@@ -55,7 +53,7 @@ function NovoPostoPage() {
     if (!coord) return toast.error("Marca a localização no mapa");
     setBusy(true);
     try {
-      const res = await submit({
+      const res = await submitStation({
         data: {
           name: name.trim(),
           brand: brand || null,

@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Building2, LogOut, User } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { authApi } from "@/lib/api";
+import { getStoredUser } from "@/lib/auth";
 import { listMySubmittedStations } from "@/lib/stations.functions";
 import { getDeviceId } from "@/lib/device-id";
 
@@ -18,10 +19,9 @@ function PerfilPage() {
 
   useEffect(() => {
     setDeviceId(getDeviceId());
-    supabase.auth.getUser().then(({ data }) => {
-      setEmail(data.user?.email ?? null);
-      setLoading(false);
-    });
+    const stored = getStoredUser();
+    setEmail(stored?.email ?? null);
+    setLoading(false);
   }, []);
 
   const { data: submitted } = useQuery({
@@ -92,7 +92,7 @@ function PerfilPage() {
 
         <button
           onClick={async () => {
-            await supabase.auth.signOut();
+            await authApi.logout();
             window.location.href = "/";
           }}
           className="w-full rounded-2xl border border-border bg-card py-3 text-sm font-semibold inline-flex items-center justify-center gap-2"

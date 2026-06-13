@@ -9,9 +9,8 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
-import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
+import { onAuthChange } from "@/lib/auth";
 
 import appCss from "../styles.css?url";
 
@@ -123,11 +122,10 @@ function AuthListener() {
   const router = useRouter();
   const qc = useQueryClient();
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange(() => {
+    return onAuthChange(() => {
       router.invalidate();
       qc.invalidateQueries();
     });
-    return () => data.subscription.unsubscribe();
   }, [router, qc]);
   return null;
 }
@@ -138,7 +136,6 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthListener />
       <div className="mx-auto w-full max-w-[480px] min-h-dvh bg-background pb-20">
-        <EmailVerificationBanner />
         <Outlet />
       </div>
       <BottomNav />

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Bell, BellOff } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { getStoredUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/alertas")({
   head: () => ({ meta: [{ title: "Alertas — Abastece.ao" }] }),
@@ -15,7 +15,7 @@ function AlertasPage() {
   );
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setAuthed(!!data.user));
+    setAuthed(!!getStoredUser());
     if (typeof Notification === "undefined") setPermission("unsupported");
     else setPermission(Notification.permission);
   }, []);

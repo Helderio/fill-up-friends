@@ -1,10 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { getStoredUser } from "@/lib/auth";
 import {
   listMyManagerRequests,
   listStations,
@@ -18,11 +17,10 @@ export const Route = createFileRoute("/gestor/pedir")({
 
 function PedirPage() {
   const navigate = useNavigate();
-  const submit = useServerFn(requestManagerAccess);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setHasSession(!!data.user));
+    setHasSession(!!getStoredUser());
   }, []);
 
   const { data: stations } = useQuery({
@@ -68,7 +66,7 @@ function PedirPage() {
     }
     setBusy(true);
     try {
-      await submit({
+      await requestManagerAccess({
         data: {
           stationId: stationId || null,
           stationNameHint: hint.trim() || null,

@@ -1,6 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { apiFetch } from "./api";
 
 export type ErrorLogRow = {
   id: string;
@@ -27,86 +25,52 @@ export type ErrorMonitoring = {
   topDevices: { hash: string; count: number }[];
 };
 
-const ALERT_THRESHOLD_HIGH = 10; // per function / hour
-const ALERT_THRESHOLD_CRITICAL = 30;
+type BackendMonitoring = {
+  lastHourTotal: number;
+  last24hTotal: number;
+  recent: Array<{
+    id: string;
+    functionName: string;
+    errorMessage: string;
+    errorCode: string | null;
+    userId: string | null;
+    deviceIdHash: string | null;
+    createdAt: string;
+  }>;
+  perFunctionLastHour: Array<{ functionName: string; total: number; level: string }>;
+  topDevices: Array<{ deviceIdHash: string; total: number }>;
+};
 
-export const getErrorMonitoring = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<ErrorMonitoring> => {
-    const { userId } = context;
-
-    // Admin gate
-    const { data: roleRow } = await supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (!roleRow) {
-      throw new Error("Sem permissão de administrador.");
-    }
-
-    const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-
-    const [recentRes, hourRes, dayCountRes] = await Promise.all([
-      supabaseAdmin
-        .from("server_error_logs")
-        .select("id,function_name,error_message,error_code,user_id,device_id_hash,created_at")
-        .order("created_at", { ascending: false })
-        .limit(50),
-      supabaseAdmin
-        .from("server_error_logs")
-        .select("function_name,device_id_hash,created_at")
-        .gte("created_at", hourAgo),
-      supabaseAdmin
-        .from("server_error_logs")
-        .select("id", { count: "exact", head: true })
-        .gte("created_at", dayAgo),
-    ]);
-
-    if (recentRes.error || hourRes.error) {
-      console.error("[DB] getErrorMonitoring:", recentRes.error?.message ?? hourRes.error?.message);
-      throw new Error("Não foi possível carregar a monitorização. Tenta novamente.");
-    }
-
-    const perFnMap = new Map<string, { count: number; lastAt: string }>();
-    const perDeviceMap = new Map<string, number>();
-    for (const r of hourRes.data ?? []) {
-      const prev = perFnMap.get(r.function_name) ?? { count: 0, lastAt: r.created_at as string };
-      prev.count += 1;
-      if ((r.created_at as string) > prev.lastAt) prev.lastAt = r.created_at as string;
-      perFnMap.set(r.function_name, prev);
-      if (r.device_id_hash) {
-        perDeviceMap.set(r.device_id_hash, (perDeviceMap.get(r.device_id_hash) ?? 0) + 1);
-      }
-    }
-
-    const perFunctionLastHour: FunctionStat[] = Array.from(perFnMap.entries())
-      .map(([functionName, v]) => ({ functionName, count: v.count, lastAt: v.lastAt }))
-      .sort((a, b) => b.count - a.count);
-
-    const alerts = perFunctionLastHour
-      .filter((s) => s.count >= ALERT_THRESHOLD_HIGH)
-      .map((s) => ({
-        functionName: s.functionName,
-        count: s.count,
-        severity: (s.count >= ALERT_THRESHOLD_CRITICAL ? "critical" : "high") as
-          | "high"
-          | "critical",
-      }));
-
-    const topDevices = Array.from(perDeviceMap.entries())
-      .map(([hash, count]) => ({ hash, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-
-    return {
-      recent: (recentRes.data ?? []) as ErrorLogRow[],
-      lastHourTotal: hourRes.data?.length ?? 0,
-      last24hTotal: dayCountRes.count ?? 0,
-      perFunctionLastHour,
-      alerts,
-      topDevices,
-    };
-  });
+export async function getErrorMonitoring(): Promise<ErrorMonitoring> {
+  const data = await apiFetch<BackendMonitoring>("/api/admin/monitoring/errors");
+  const perFunctionLastHour = data.perFunctionLastHour.map((item) => ({
+    functionName: item.functionName,
+    count: item.total,
+    lastAt: "",
+  }));
+  return {
+    lastHourTotal: data.lastHourTotal,
+    last24hTotal: data.last24hTotal,
+    perFunctionLastHour,
+    alerts: perFunctionLastHour
+      .filter((item) => item.count >= 10)
+      .map((item) => ({
+        functionName: item.functionName,
+        count: item.count,
+        severity: item.count >= 30 ? "critical" : "high",
+      })),
+    topDevices: data.topDevices.map((item) => ({
+      hash: item.deviceIdHash,
+      count: item.total,
+    })),
+    recent: data.recent.map((row) => ({
+      id: row.id,
+      function_name: row.functionName,
+      error_message: row.errorMessage,
+      error_code: row.errorCode,
+      user_id: row.userId,
+      device_id_hash: row.deviceIdHash,
+      created_at: row.createdAt,
+    })),
+  };
+}

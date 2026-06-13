@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 import { ArrowLeft, Fuel } from "lucide-react";
@@ -37,7 +36,6 @@ const emptyEntry: FuelEntry = {
 function ReportarPage() {
   const { stationId: pre } = useSearch({ from: "/reportar" });
   const navigate = useNavigate();
-  const submit = useServerFn(submitReport);
 
   const [stationId, setStationId] = useState<string>(pre ?? "");
   const [entries, setEntries] = useState<Record<FuelKey, FuelEntry>>({
@@ -73,7 +71,7 @@ function ReportarPage() {
       const results = await Promise.allSettled(
         selected.map((f) => {
           const entry = entries[f];
-          return submit({
+          return submitReport({
             data: {
               stationId,
               fuelType: f,

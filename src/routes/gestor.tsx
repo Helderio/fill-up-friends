@@ -1,10 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { Building2, ShieldCheck, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { getStoredUser } from "@/lib/auth";
 import {
   listMyManagedStations,
   submitOfficialReport,
@@ -23,9 +22,7 @@ function GestorPage() {
   const [hasSession, setHasSession] = useState<boolean | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setHasSession(!!data.user);
-    });
+    setHasSession(!!getStoredUser());
   }, []);
 
   const { data, isLoading } = useQuery({
@@ -116,7 +113,6 @@ type ManagedRow = {
 
 function ManagedStationCard({ row }: { row: ManagedRow }) {
   const qc = useQueryClient();
-  const submit = useServerFn(submitOfficialReport);
 
   const [fuel, setFuel] = useState<(typeof FUEL_TYPES)[number]>("gasolina");
   const [status, setStatus] = useState<(typeof STATUSES)[number]>("disponivel");
@@ -129,7 +125,7 @@ function ManagedStationCard({ row }: { row: ManagedRow }) {
   async function send(forceStatus?: (typeof STATUSES)[number]) {
     setBusy(true);
     try {
-      await submit({
+      await submitOfficialReport({
         data: {
           stationId: row.station.id,
           fuelType: fuel,
